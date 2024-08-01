@@ -1,6 +1,4 @@
 import json
-
-import discord.app_commands
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, session, url_for, send_file, redirect
 import mysql.connector
