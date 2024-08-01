@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventaire</title>
+    <link href="{{ url_for('static', filename='inv.css') }}" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Inventaire</h1>
+<p>{{nom}}</p>
+<div id="inv">
+<img style="width: 800px; image-rendering: pixelated;" src="https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/gui/container/inventory.png">
+<div class="skin" id="skin" style="top: 140px; left: 90px;" ></div>
+<div class="slot" id="slot103" style="top: 140px; left: 33px;"></div>
+<div class="slot" id="slot102" style="top: 197px; left: 33px;"></div>
+<div class="slot" id="slot101" style="top: 253px; left: 33px;"></div>
+<div class="slot" id="slot100" style="top: 309px; left: 33px;"></div>
+<div class="slot" id="slot-106" style="top: 309px; left: 248px;"></div>
+<script>
+
+    const skin = document.getElementById("skin");
+    const skinIMG = document.createElement("img");
+
+    skinIMG.src = " {{skin_url}} ";
+    skin.appendChild(skinIMG);
+
+    const frame = document.getElementById("inv");
+    for (let i=0; i<2; i++){
+        for (let j=0; j<2; j++){
+            var ele = document.createElement("div");
+            ele.id = "slot" + ((i+1)+(j*2)+79);
+            ele.className = "slot";
+            ele.style.top = (171 + 56.1 * j) + "px";
+            ele.style.left = (314 + 56.1 * i) + "px";
+            frame.appendChild(ele);
+        }
+    }
+
+    for (let i=0; i<9; i++){
+        for (let j=0; j<3; j++){
+            var ele = document.createElement("div");
+            ele.id = "slot" + ((i+1)+(j*9) + 8);
+            ele.className = "slot";
+            ele.style.top = (377 + 56.1 * j) + "px";
+            ele.style.left = (33 + 56.1 * i) + "px";
+            frame.appendChild(ele);
+        };
+        var ele = document.createElement("div");
+            ele.id = "slot" + (i);
+            ele.className = "slot";
+            ele.style.top = "559px";
+            ele.style.left = (33 + 56.1 * i) + "px";
+            frame.appendChild(ele);
+    };
+
+
+</script>
+</div>
+<script>
+
+    for (let i of {{inv|safe}} ){
+        const slot = document.getElementById("slot"+i[1]);
+
+
+        let imageURL = "{{ url_for('static', filename='img/items_1.20.1') }}" + "/" + i[0] + ".png";
+        console.log(i[3])
+        if (i[3]){
+            imageURL = "{{ url_for('enchante', img='') }}" + i[0];
+            console.log(i[0])
+        }
+        console.log(imageURL)
+
+        // slot.style.background = 'url(' + imageURL + ') no-repeat top left';
+        slot.classList.add("img");
+        var image = document.createElement("img");
+        image.src = imageURL;
+        slot.appendChild(image);
+        if (i[2] > 1){
+            var count = document.createElement("p");
+            count.textContent = i[2];
+            count.classList.add("count");
+            slot.appendChild(count);
+        }
+
+    };
+</script>
+
+</body>
+</html>

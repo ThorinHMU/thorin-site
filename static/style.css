@@ -1,0 +1,14 @@
+#b1 {
+    float: left;
+}
+
+#all {
+height: 500px;
+}
+
+.item a,
+.item p{
+display: inline;
+margin-right: 10px;
+
+}
