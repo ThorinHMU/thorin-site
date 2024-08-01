@@ -220,6 +220,3 @@ def inv():
         # print(i)
     return render_template("Inventaire.html", skin_url=skin_url, inv=json.dumps(inventaire), nom=nom)
 
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=False)
