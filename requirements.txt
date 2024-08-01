@@ -1,0 +1,4 @@
+BeautifulSoup4
+flask
+mysql-connector-python
+NBT
