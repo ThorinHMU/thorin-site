@@ -4,3 +4,4 @@ mysql-connector-python
 NBT
 requests
 Pillow
+gunicorn
