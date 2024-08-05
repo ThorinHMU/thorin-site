@@ -4,10 +4,10 @@ import io
 
 def enchant(img):
     # Chargement de l'image de l'épée
-    epee = Image.open(f'../API Ptérodactyl/items_1.20.1/{img}.png')
+    epee = Image.open(f'static/img/items_1.20.1/{img}.png')
 
     # Chargement de l'image du fond
-    fond = Image.open('../API Ptérodactyl/fond.png')
+    fond = Image.open('static/img/fond.png')
 
     # Assurez-vous que les deux images ont les mêmes dimensions
     fond = fond.resize(epee.size)
