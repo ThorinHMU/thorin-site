@@ -1,33 +1,25 @@
 // Set Dimensions
-const xSize = 1000;
-const ySize = 500;
 const margin = 40;
-const xMax = xSize - margin*2;
-const yMax = ySize - margin*2;
+const xSize = document.getElementById("b1").offsetWidth - 2 * margin;
+const ySize = document.getElementById("b1").offsetHeight - 4 * margin;
 
 const data = []
-var last_date = -(86400/50)
 var nomsListe = [];
 var positionsPersonnalisees = [];
 
-
+// set la variable data
 for (var usernam of usernames){
-
-    data.push([usernam[0], [usernam[1][0], usernam[1][1]], usernam[2], usernam[3]]);
-
-
-    // étiquette des abscisse
-    if (usernam[1][1]-last_date >= 86400/50) {
-        var last_date = usernam[1][1]
-        nomsListe.push(usernam[1][0].substring(11, 19));
-        positionsPersonnalisees.push(usernam[1][1]*5);
-    }
+  
+  data.push([usernam[0], [usernam[1][0], usernam[1][1]], usernam[2], usernam[3]])
 }
 
+// set étiquette axe x
+for (let i=0; i<=24; i++){
+  nomsListe.push(i+":00")
+  positionsPersonnalisees.push(i*(1/24))
+}
 
-console.log(data)
-
-
+// compte nombre d'element de data
 var lenght = 0;
 for (var i in data) {
     lenght++;
@@ -40,11 +32,10 @@ if (1) {
         }
     }
 }
-console.log(data)
 
 var lenght = 0;
 for (var test in data) {
-    lenght++;
+  lenght++;
  }
 
 
@@ -59,45 +50,50 @@ var formatNomAxeX = function(d, i) {
   return nomsListe[i];
 };
 
+
 // X Axis
 const x = d3.scaleLinear()
-  .domain([0, 86400])
-  .range([0, 1000]);
+  .range([0, xSize]);
 
 svg.append("g")
-  .attr("transform", "translate(0," + 420 + ")")
+  .attr("transform", "translate(0," + ySize + ")")
   .call(d3.axisBottom(x).tickValues(positionsPersonnalisees).tickFormat(formatNomAxeX))
   .selectAll("text")
   .attr("transform", "rotate(-45)")  // Fait pivoter le texte de l'axe x de 90 degrés
   .attr("dx", "-2.25em")  // Ajuste la position du texte
-  .attr("dy", "0.5em");
+  .attr("dy", "0.5em")
+  .attr("fill", "white");
 
 // Y Axis
 const y = d3.scaleLinear()
   .domain([0, 10])
-  .range([ yMax, 0]);
+  .range([ySize, 0]);
 
 svg.append("g")
-  .call(d3.axisLeft(y));
+  .call(d3.axisLeft(y))
+  .selectAll("text")
+  .attr("fill", "white");
 
 // Dots
 svg.append('g')
-  .selectAll("dot")
+  .selectAll("prout")
   .data(data).enter()
   .append("circle")
-  .attr("cx", function (d) { return d[1][1]*5000/86400 } )
-  .attr("cy", function (d) { return 420-d[2]*420/10 } )
+  .attr("cx", function (d) { return d[1][1]*xSize/86400 } )
+  .attr("cy", function (d) { return ySize-d[2]*ySize/10 } )
   .attr("r", 2)
-  .style("fill", "Red")
+  .style("fill", function (d) {
+    if (d[3] == 1){return "white" }
+    else {return "red" }
+  })
 
 svg.append('g')
   .selectAll("dot")
   .data(data).enter()
   .append("circle")
-  .attr("cx", function (d) { return d[1][1]*5000/86400 } )
-  .attr("cy", function (d) { return 420-d[2]*420/10 } )
+  .attr("cx", function (d) { return d[1][1]*xSize/86400 } )
+  .attr("cy", function (d) { return ySize-d[2]*ySize/10 } )
   .attr("r", 5)
-  .style("fill", "Red")
   .style("opacity", "0")
   .on("mouseout", function(event) {
     tooltip.style("opacity", 1);
@@ -123,7 +119,7 @@ svg.append('g')
         .attr("y", mouseY - 10)
         .style("opacity", 1); // Rendre le texte visible
     tooltip.select("tspan:nth-child(1)")
-            .text(event[1][0])
+            .text(event[1][0].substr(11))
     tooltip.select("tspan:nth-child(2)")
             .text(event[0])
 
@@ -159,20 +155,24 @@ svg.append('g')
 
 for (let pas = 0; pas < lenght-1; pas++) {
 svg.append('line')
-    .style("stroke", "red")
+    .style("stroke", function () {
+    if (data[pas][3] == 1){return "white" }
+    else {return "red" }
+  })
     .style("stroke-width", 1)
-    .attr("x1", function () { return data[pas][1][1]*5000/86400 })
-    .attr("y1", function () { return 420-data[pas][2]*420/10 })
-    .attr("x2", function () { return data[pas+1][1][1]*5000/86400 })
-    .attr("y2", function () { return 420-data[pas+1][2]*420/10 });}
+    .attr("x1", function () { return data[pas][1][1]*xSize/86400 })
+    .attr("y1", function () { return ySize-data[pas][2]*ySize/10 })
+    .attr("x2", function () { return data[pas+1][1][1]*xSize/86400 })
+    .attr("y2", function () { return ySize-data[pas+1][2]*ySize/10 });}
 
 var fond = svg.append("rect")
-    .style("fill", "white")
+    .style("fill", "var(--widget-blue)")
 
 // Créer un élément texte pour afficher les informations à côté de la souris
 var tooltip = svg.append("text")
     .attr("class", "tooltip")
-    .style("opacity", 0);
+    .style("opacity", 0)
+    .style("fill", "white");
 
 tooltip.append("tspan")
     .attr("x", 10)

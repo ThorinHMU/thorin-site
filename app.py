@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, request, session, url_for, send_file, redirect
+from flask import Flask, render_template, request, session, url_for, send_file, redirect, jsonify
 import mysql.connector
 import datetime
 from config import host, port, user, password, database, apkey
@@ -11,6 +11,7 @@ from io import BytesIO
 from enchant import enchant
 
 app = Flask(__name__)
+application = app
 app.secret_key = "05f13cee9a270bbb6467039508232f38531b3ec6db04b16c6c80ac5b225cec4b"
 
 
@@ -85,13 +86,14 @@ def test():
     jour_actuel = [[jour_actuel.year, jour_actuel.month, jour_actuel.day],
                    [jour_actuel.hour, jour_actuel.minute, jour_actuel.second]]
     date_arg = arguments.get("date")
+
     if date_arg:
         date_arg = [int(i.lstrip("0")) for i in date_arg.split("-")]
+        jour_actuel_stamp = datetime.datetime(*date_arg).timestamp().__int__()
     else:
         date_arg = jour_actuel[0].copy()
         return redirect(url_for(f"test",
-                                date=f"{date_arg[0]}-{str(date_arg[1]).rjust(2,'0')}-{date_arg[2]}"))
-
+                                date=f"{date_arg[0]}-{str(date_arg[1]).rjust(2, '0')}-{date_arg[2]}"))
     users = sql()
 
     users = sorted(users, key=lambda x: x["id"])
@@ -118,13 +120,13 @@ def test():
 
         list_players = eval(info_serv_select["players"])
         date = [f"{datetime.datetime.fromtimestamp(info_serv_select['time'])}",
-                int(info_serv_select["time"]) - first_time if first_time else 0]
+                int(info_serv_select["time"]) - jour_actuel_stamp]
         nbr_players = len(eval(info_serv_select["players"]))
         online = int(info_serv_select["online"])
 
         date_datetime = datetime.datetime.fromtimestamp(info_serv_select["time"])
 
-        # si le user_s corespond a la date selectioné sur le site
+        # si le "user_s" corespond a la date selectioné sur le site
         if date_datetime.date() == datetime.date(date_arg[0], date_arg[1], date_arg[2]):
 
             if not first_time:
@@ -149,7 +151,6 @@ def test():
             ancien = set(list_players)
 
             usernames.append([list_players, date, nbr_players, online])
-
 
     if usernames:
         if usernames[-1][2] > 0 and False:
@@ -186,6 +187,10 @@ def test():
 def inv():
     argument = request.args
     player_select = argument.get("player")
+    date = argument.get("date")
+    if not date:
+        date = datetime.date.today()
+        date = f"{date.year}-{date.month}-{date.day}"
     url = f"https://game.hosterfy.com/api/client/servers/6c43749e/files/contents?file=usercache.json"
     headers = {
         "Authorization": f"Bearer {apkey}",
@@ -200,12 +205,11 @@ def inv():
     nom = str(file.get("bukkit").get("lastKnownName"))
     print("Inventaire de", nom)
     if nom.replace("_", "").isalnum():
-        url = f"https://minecraft-api.com/api/skins/{nom}/skin/10.5/10/10.25/"
+        url = f"https://mineskin.eu/armor/body/{nom}/100.png"
     else:
-        url = f"https://minecraft-api.com/api/skins/Prout/skin/10.5/10/10.25/"
-    # response = requests.request("GET", url)
-    # soup = BeautifulSoup(response.text, 'html.parser')
-    skin_url = None
+        url = f"https://mineskin.eu/armor/body/_/100.png"
+
+    skin_url = url
     inventaire = []
     for i in file.get("Inventory"):
         enchantes = i.get("components")
@@ -215,8 +219,88 @@ def inv():
         assert isinstance(a, nbt.TAG_Byte)
         inventaire.append([i.get("id").__str__().replace("minecraft:", ""), a.value.__int__(),
                            str(i.get("count")), enchantes is not None])
-    for i in inventaire:
-        pass
-        # print(i)
-    return render_template("Inventaire.html", skin_url=skin_url, inv=json.dumps(inventaire), nom=nom)
 
+    return render_template("Inventaire.html", skin_url=skin_url, inv=json.dumps(inventaire),
+                           nom=nom, date=date)
+
+
+def calc_secondes(timestamp):
+    time = datetime.datetime.fromtimestamp(timestamp).time()
+    return datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second).total_seconds().__int__()
+
+
+def count_time_player_co(player_name: str, data: list) -> int:
+    if not data:
+        return 0
+    date = datetime.datetime.fromtimestamp(data[-1].get("time")).date()
+
+    time = 0
+    last_time = 0
+    for i in data:
+        tot_seconde = calc_secondes(i.get("time")) \
+            if datetime.datetime.fromtimestamp(i.get('time')).date() == date \
+            else 0
+        if player_name in i.get("players") or (player_name == "*" and i.get("players")):
+            if not last_time:
+                last_time = tot_seconde
+        else:
+            if last_time:
+                time += tot_seconde - last_time
+                last_time = 0
+    if last_time:
+        time += datetime.timedelta(hours=24).total_seconds().__int__() - last_time
+    return time
+
+
+def trans_data(data):
+    data.update({"aff_time": datetime.datetime.fromtimestamp(data["time"]).time().__str__()})
+    data_fin = {key: data[key] for key in ["online", "time", "players", "aff_time"]}
+    data_fin["players"] = eval(data_fin["players"])
+    return data_fin
+
+
+@app.route("/data", methods=["POST"])
+def data_co():
+    # Récuperation des donnes d'entrées
+    data: dict = request.json
+    date = datetime.date(*[int(i) for i in data.get("date").split("-")]) if data.get("date") else datetime.date.today()
+    intervalle = data.get("intervalle")
+
+    data_sql = sql()
+    data_sql_fin = []
+    data_send = {}
+
+    liste_player = set()
+    for k, i in enumerate(data_sql):
+        sql_time = datetime.datetime.fromtimestamp(i.get("time"))
+        if sql_time.date() == date:
+            if not data_sql_fin:
+                if k != 0:
+                    time_0 = sql_time.replace(hour=0, minute=0, second=0)
+                    data_0 = trans_data(data_sql[k-1])
+                    data_0.update({"time": time_0.timestamp().__int__(), "aff_time": time_0.time().__str__()})
+                    data_sql_fin.append(data_0)
+                    liste_player = liste_player | set(eval(i.get("players")))
+                else:
+                    pass
+            data_sql_fin.append(trans_data(i))
+            liste_player = liste_player | set(eval(i.get("players")))
+
+    if data_sql_fin and date == datetime.date.today():
+        last = data_sql_fin[-1].copy()
+        last["time"] = datetime.datetime.now().timestamp().__int__()
+        last["aff_time"] = datetime.datetime.now().time().__str__()
+        data_sql_fin.append(last)
+
+    data_send.update({"points": data_sql_fin,
+                      "temps_co": [(datetime.timedelta(seconds=count_time_player_co(player, data_sql_fin)).__str__(),
+                                    player) for player in liste_player],
+                      "temps_co_tot": datetime.timedelta(seconds=count_time_player_co("*",
+                                                                                      data_sql_fin)).__str__()})
+    for i in data_sql_fin:
+        print(i, datetime.datetime.fromtimestamp(i.get("time")).time())
+    print([(datetime.timedelta(seconds=count_time_player_co(player, data_sql_fin)).__str__(), player)
+           for player in liste_player])
+    print(datetime.timedelta(seconds=count_time_player_co("*", data_sql_fin)).__str__())
+
+    return jsonify({'data': data_send})

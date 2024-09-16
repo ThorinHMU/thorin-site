@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <title>Inventaire</title>
     <link href="{{ url_for('static', filename='inv.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" type="text/css">
 </head>
 <body>
 <h1>Inventaire</h1>
 <p>{{nom}}</p>
+<div id="main">
 <div id="inv">
-<img style="width: 800px; image-rendering: pixelated;" src="https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/gui/container/inventory.png">
-<div class="skin" id="skin" style="top: 140px; left: 90px;" ></div>
-<div class="slot" id="slot103" style="top: 140px; left: 33px;"></div>
-<div class="slot" id="slot102" style="top: 197px; left: 33px;"></div>
-<div class="slot" id="slot101" style="top: 253px; left: 33px;"></div>
-<div class="slot" id="slot100" style="top: 309px; left: 33px;"></div>
-<div class="slot" id="slot-106" style="top: 309px; left: 248px;"></div>
+<img style="width: 100%; image-rendering: pixelated;" src="{{url_for('static', filename='img/inventaire.png')}}">
+<div class="skin" id="skin"></div>
+<div class="slot" id="slot106" style="top: 309px; left: 248px;"></div>
 <script>
 
     const skin = document.getElementById("skin");
@@ -24,37 +22,58 @@
     skinIMG.src = " {{skin_url}} ";
     skin.appendChild(skinIMG);
 
+    const espace_x = 10.20
+    const espace_y = 10.75
     const frame = document.getElementById("inv");
+
+    // Armure
+    for (let i=0; i<4; i++){
+        var ele = document.createElement("div");
+        ele.id = "slot" + (103-i);
+        ele.className = "slot";
+        ele.style.top = (5+i*espace_y) + "%";
+        ele.style.left = "4.5%";
+        frame.appendChild(ele);
+    }
+
+    // Craft
     for (let i=0; i<2; i++){
         for (let j=0; j<2; j++){
             var ele = document.createElement("div");
             ele.id = "slot" + ((i+1)+(j*2)+79);
             ele.className = "slot";
-            ele.style.top = (171 + 56.1 * j) + "px";
-            ele.style.left = (314 + 56.1 * i) + "px";
+            ele.style.top = (11 + espace_y * j) + "%";
+            ele.style.left = (55.5 + espace_x * i) + "%";
             frame.appendChild(ele);
         }
     }
 
+    // Inventaire
     for (let i=0; i<9; i++){
         for (let j=0; j<3; j++){
             var ele = document.createElement("div");
             ele.id = "slot" + ((i+1)+(j*9) + 8);
             ele.className = "slot";
-            ele.style.top = (377 + 56.1 * j) + "px";
-            ele.style.left = (33 + 56.1 * i) + "px";
+            ele.style.top = (50.5 + espace_y * j) + "%";
+            ele.style.left = (4.5 + espace_x * i) + "%";
             frame.appendChild(ele);
         };
+
+        // Hotbar
         var ele = document.createElement("div");
             ele.id = "slot" + (i);
             ele.className = "slot";
-            ele.style.top = "559px";
-            ele.style.left = (33 + 56.1 * i) + "px";
+            ele.style.top = "85%";
+            ele.style.left = (4.5 + espace_x * i) + "%";
             frame.appendChild(ele);
     };
 
 
 </script>
+</div>
+    <div  class="nav">
+        <a href="{{url_for('test', date=(date|tojson)[1:-1])}}" class="btn">Menu</a>
+    </div>
 </div>
 <script>
 
@@ -71,7 +90,6 @@
         console.log(imageURL)
 
         // slot.style.background = 'url(' + imageURL + ') no-repeat top left';
-        slot.classList.add("img");
         var image = document.createElement("img");
         image.src = imageURL;
         slot.appendChild(image);

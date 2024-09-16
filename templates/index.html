@@ -1,70 +1,65 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" type="text/css">
-    <script src="https://d3js.org/d3.v4.js"></script>
-    <title>Stat</title>
-</head>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" type="text/css">
+        <script src="https://d3js.org/d3.v4.js"></script>
+        <title>Stat</title>
+    </head>
 
-<body>
-<h2>{{stat}}</h2>
-<div id="all">
-<div id="b1">
-<svg id="myPlot" style="width:1050px;height:500px"></svg>
+    <body>
+        <div id="all">
+            <div id="main">
+                <div id="b1">
+                    <h2>{{stat}}</h2>
+                    <svg id="myPlot"></svg>
+                    <div id="info-point">
 
-</div>
-    <script>
-        const temp = {{ temp|tojson }};
-        const usernames = {{ usernames|tojson }};
-        const temps_user = {{ temps_user|tojson }};
-        const stat = {{ stat|tojson }};
-        const temps_total = {{ temps_total|tojson }};
-        const date = {{ date|tojson }};
+                    </div>
+                </div>
+                <script>
+                    const temp = {{ temp|tojson }};
+                    const usernames = {{ usernames|tojson }};
+                    const temps_user = {{ temps_user|tojson }};
+                    const stat = {{ stat|tojson }};
+                    const temps_total = {{ temps_total|tojson }};
+                    const date = {{ date|tojson }};
+                </script>
 
-    </script>
-    <script src="{{url_for('static',filename='test.js')}}" ></script>
-    <div id="b2">
-
-        <p>Temps total avec joueur: {{temps_total}}</p>
-        {% for i in temps_user.keys() %}
-        <div class="item">
-            <a href="{{url_for('inv', player=i)}}">{{i}}</a>
-            <p>: {{temps_user[i]["temps_aff"]}}</p>
+                <div>
+                    <button onclick="navigate(-1)" class="btn">Jour précédent</button>
+                    <button onclick="navigate(1)" class="btn">Jour suivant</button>
+                    <form>
+                        <p>
+                            <input type="date" name="date" id="nom" class="btn">
+                            <input type="submit" value="envoie" class="btn">
+                        </p>
+                    </form>
+                    <button onclick='send_data({{ date|tojson }})' class="btn">Test</button>
+                </div>
+            </div>
+            <div id="b2"></div>
         </div>
-        {% endfor %}
-    </div>
-</div>
 
 
+        <script>
+            function navigate(offset) {
+                var currentDate = new Date('{{ date }}');
+                var nextDate = new Date(currentDate);
+                nextDate.setDate(currentDate.getDate() + offset);
 
+                // Construire manuellement la chaîne de date au format "YYYY-MM-DD"
+                var year = nextDate.getFullYear();
+                var month = String(nextDate.getMonth() + 1).padStart(2, '0');
+                var day = String(nextDate.getDate()).padStart(2, '0');
+                var isoDate = year + '-' + month + '-' + day;
 
-<script>
-    function navigate(offset) {
-    var currentDate = new Date('{{ date }}');
-    var nextDate = new Date(currentDate);
-    nextDate.setDate(currentDate.getDate() + offset);
+                // Rediriger vers l'URL avec la nouvelle date
+                window.location.href = "{{ url_for('test') }}?date=" + isoDate;
+            }
+        </script>
 
-    // Construire manuellement la chaîne de date au format "YYYY-MM-DD"
-    var year = nextDate.getFullYear();
-    var month = String(nextDate.getMonth() + 1).padStart(2, '0');
-    var day = String(nextDate.getDate()).padStart(2, '0');
-    var isoDate = year + '-' + month + '-' + day;
-    // Rediriger vers l'URL avec la nouvelle date
-    window.location.href = "{{ url_for('test') }}?date=" + isoDate;
-}
-</script>
-
-<div style="margin-inline-start: -1050px; display: inline;">
-        <button onclick="navigate(-1)">Jour précédent</button>
-        <button onclick="navigate(1)">Jour suivant</button>
-    <form>
-        <p>
-            <input type="date" name="date" id="nom">
-            <input type="submit" value="envoie">
-        </p>
-    </form>
-</div>
-
-</body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </body>
 </html>
