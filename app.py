@@ -272,7 +272,7 @@ def data_co():
 
     liste_player = set()
     for k, i in enumerate(data_sql):
-        sql_time = datetime.datetime.fromtimestamp(i.get("time"))
+        sql_time = datetime.datetime.fromtimestamp(i.   get("time"))
         if sql_time.date() == date:
             if not data_sql_fin:
                 if k != 0:
