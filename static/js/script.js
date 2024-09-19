@@ -14,27 +14,27 @@ function find_points(intervalle, data){
         }
     }
     const new_data = structuredClone(l_data.slice(inter_d, inter_e + 1));
+    if (new_data.length){
     new_data.at(0)["time"] = l_data.at(0)["time"] + intervalle[0];
     new_data.at(0)["aff_time"] = new Date(new_data.at(0)["time"]*1000).toLocaleTimeString();
     new_data.push(structuredClone(new_data.at(-1)))
     new_data.at(-1)["time"] = l_data.at(0)["time"] + intervalle[1];
     new_data.at(-1)["aff_time"] = new Date(new_data.at(-1)["time"]*1000).toLocaleTimeString();
+}
     return new_data
 }
 
-function set_graph(datas){
+function set_graph(datas, intervalle = [0, 86400]){
+
     d3.select("#myPlot").select("g").remove()
 
     const svg = d3.select("#myPlot")
     const data = structuredClone(datas)
-    const intervalle = [54000, 54300]
-
+    console.log(data["points"])
     const coef = intervalle[1] - intervalle[0]
-    const t = coef/24/(coef >= 60 * 24 ? 60 : 1)
-    const grandeur = Math.floor(Math.log10(Math.pow(10, Math.round(Math.log10(t)) / 10)) * -1);
-    const pas = Math.round(Math.round(t/5, grandeur)*5, grandeur)*(coef >= 60 * 24 ? 60 : 1);
-    const count_pas = Math.floor((coef-pas-1)/(pas))+1
-    const fisrt_pas = Math.floor(intervalle[0]/pas)*pas + pas
+    const pas = coef/24;
+    const count_pas = 23
+    const fisrt_pas = intervalle[0]+ pas
     const data_p = find_points(intervalle, data["points"]);
 
      // temps des joueurs
@@ -63,6 +63,7 @@ function set_graph(datas){
     // set étiquette axe x
     const x_pos_list = []
     var x_label_list = []
+    console.log("pas", count_pas, pas, coef)
     x_pos_list.push(0)
     x_label_list.push(new Date(intervalle[0]*1000-3600000).toLocaleTimeString())
     for (let i=1; i<=count_pas; i++){
@@ -87,7 +88,8 @@ function set_graph(datas){
     // Add global <g>
     const g = svg
     .append("g")
-    .attr("transform","translate(" + margin + "," + margin + ")");
+    .attr("transform","translate(" + margin + "," + margin + ")")
+
 
     // add Axes
     const Axe_x = d3.scaleLinear().range([0, xSize]);
@@ -118,7 +120,7 @@ function set_graph(datas){
     .style("fill", function (d) {
         if (d["online"] == 1){return "white" }
         else {return "red" }
-    })
+    });
 
     // creation des lignes
     g.append("g")
@@ -133,9 +135,72 @@ function set_graph(datas){
     .style("stroke", function (d) {
         if (d["online"] == 1){return "white" }
         else {return "red" }
+    });
+    // creation du rect de selection
+    g.append("rect")
+            .style("fill", "rgb(100, 100, 100, 0.5)")
+            .style("height", ySize)
+            .style("width", "2px")
+            .attr("id", "slc")
+            .style("visibility", "hidden");
+    
+    // creation du rect pour detecter la souris
+    g.append("rect")
+        .style("fill", "#00000000")
+        .style("height", ySize)
+        .style("width", xSize)
+        .attr("id", "test");
+
+    // detecter la souris
+    const mydiv = document.getElementById("test");
+    const slc = document.getElementById("slc");
+    const rect = mydiv.getBoundingClientRect();
+    var x = null;
+
+    mydiv.addEventListener("mouseenter", function(){
+        slc.style.visibility = "";
     })
 
+    mydiv.addEventListener("mouseleave", function(){
+        slc.style.visibility = "hidden";
+        slc.style.width = "2px";
+        x = null;
+    })
 
+    mydiv.addEventListener("mousedown", function(event){
+        if (event.button==0){
+            x = event.clientX - rect.left;
+        }
+    })
+    
+    mydiv.addEventListener("mouseup", function(event){
+        if (x && Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0] > Math.round((x)/xSize*coef)+intervalle[0]){
+            set_graph(data, [Math.round((x)/xSize*coef)+intervalle[0], Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0]])
+        }
+        
+        x = null;
+        slc.style.width = "2px";
+    })
+    
+    mydiv.addEventListener("contextmenu", function(e){
+        e.preventDefault();
+    })
+    
+    mydiv.addEventListener("mousemove", function(event) {
+        if (event.buttons != 1){
+            x = null;
+            slc.style.width = "2px";
+        }
+
+        if (!x){;
+            slc.setAttribute("x", (event.clientX - rect.left))
+        } else if((event.clientX - rect.left) - x > 1) {
+            slc.style.width = (event.clientX - rect.left) - x;
+        } else {
+            slc.style.width = "2px";
+        }
+        // console.log(new Date((Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0])*1000 - 3600000).toLocaleTimeString());
+    });
 }
 
 function send_data(date){

@@ -264,7 +264,6 @@ def data_co():
     # Récuperation des donnes d'entrées
     data: dict = request.json
     date = datetime.date(*[int(i) for i in data.get("date").split("-")]) if data.get("date") else datetime.date.today()
-    intervalle = data.get("intervalle")
 
     data_sql = sql()
     data_sql_fin = []
