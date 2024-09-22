@@ -71,7 +71,6 @@ def enchante(img):
 
 @app.route('/retour', methods=['POST'])
 def retour():
-    print(request.args)
     return 'La fonction a été exécutée avec succès !'
 
 
@@ -203,7 +202,6 @@ def inv():
     if not file:
         return "Joueur Non trouvé"
     nom = str(file.get("bukkit").get("lastKnownName"))
-    print("Inventaire de", nom)
     if nom.replace("_", "").isalnum():
         url = f"https://mineskin.eu/armor/body/{nom}/100.png"
     else:
@@ -226,19 +224,19 @@ def inv():
 
 def calc_secondes(timestamp):
     time = datetime.datetime.fromtimestamp(timestamp).time()
-    return datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second).total_seconds().__int__()
+    return int(datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second).total_seconds())
 
 
 def count_time_player_co(player_name: str, data: list) -> int:
     if not data:
         return 0
-    date = datetime.datetime.fromtimestamp(data[-1].get("time")).date()
+    date = datetime.datetime.fromtimestamp(data[0].get("time")).date()
 
     time = 0
     last_time = 0
     for i in data:
         tot_seconde = calc_secondes(i.get("time")) \
-            if datetime.datetime.fromtimestamp(i.get('time')).date() == date \
+            if datetime.datetime.fromtimestamp(i.get('time')-1).date() == date \
             else 0
         if player_name in i.get("players") or (player_name == "*" and i.get("players")):
             if not last_time:
@@ -248,8 +246,25 @@ def count_time_player_co(player_name: str, data: list) -> int:
                 time += tot_seconde - last_time
                 last_time = 0
     if last_time:
-        time += datetime.timedelta(hours=24).total_seconds().__int__() - last_time
+        d_time = datetime.datetime.fromtimestamp(data[-1].get("time")).time()
+        time += datetime.timedelta(hours=d_time.hour,
+                                   minutes=d_time.minute,
+                                   seconds=d_time.second).total_seconds().__int__() - last_time
     return time
+
+
+@app.route("/temps", methods=["POST"])
+def count_time_players_co():
+    data: dict = request.json
+    data: list[dict] = data.get("data")
+    liste_players = set()
+    for i in data:
+        liste_players = liste_players | set(i.get("players"))
+    times = [(str(datetime.datetime.fromtimestamp(count_time_player_co(player, data), datetime.timezone.utc).time()),
+              player) for player in liste_players]
+    time_tot = str(datetime.datetime.fromtimestamp(count_time_player_co("*", data), datetime.timezone.utc).time())
+
+    return jsonify({"temps": {"temps_co": times, "temps_co_tot": time_tot}})
 
 
 def trans_data(data):
@@ -269,7 +284,6 @@ def data_co():
     data_sql_fin = []
     data_send = {}
 
-    liste_player = set()
     for k, i in enumerate(data_sql):
         sql_time = datetime.datetime.fromtimestamp(i.   get("time"))
         if sql_time.date() == date:
@@ -279,11 +293,9 @@ def data_co():
                     data_0 = trans_data(data_sql[k-1])
                     data_0.update({"time": time_0.timestamp().__int__(), "aff_time": time_0.time().__str__()})
                     data_sql_fin.append(data_0)
-                    liste_player = liste_player | set(eval(i.get("players")))
                 else:
                     pass
             data_sql_fin.append(trans_data(i))
-            liste_player = liste_player | set(eval(i.get("players")))
 
     if data_sql_fin and date == datetime.date.today():
         last = data_sql_fin[-1].copy()
@@ -291,15 +303,9 @@ def data_co():
         last["aff_time"] = datetime.datetime.now().time().__str__()
         data_sql_fin.append(last)
 
-    data_send.update({"points": data_sql_fin,
-                      "temps_co": [(datetime.timedelta(seconds=count_time_player_co(player, data_sql_fin)).__str__(),
-                                    player) for player in liste_player],
-                      "temps_co_tot": datetime.timedelta(seconds=count_time_player_co("*",
-                                                                                      data_sql_fin)).__str__()})
+    data_send.update({"points": data_sql_fin})
     for i in data_sql_fin:
-        print(i, datetime.datetime.fromtimestamp(i.get("time")).time())
-    print([(datetime.timedelta(seconds=count_time_player_co(player, data_sql_fin)).__str__(), player)
-           for player in liste_player])
-    print(datetime.timedelta(seconds=count_time_player_co("*", data_sql_fin)).__str__())
+        # print(i, datetime.datetime.fromtimestamp(i.get("time")).time())
+        pass
 
     return jsonify({'data': data_send})

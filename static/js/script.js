@@ -20,50 +20,50 @@ function find_points(intervalle, data){
     new_data.push(structuredClone(new_data.at(-1)))
     new_data.at(-1)["time"] = l_data.at(0)["time"] + intervalle[1];
     new_data.at(-1)["aff_time"] = new Date(new_data.at(-1)["time"]*1000).toLocaleTimeString();
-}
+    }
     return new_data
 }
 
-function set_graph(datas, intervalle = [0, 86400]){
+function players_time(data){
+    return fetch('/temps', {
+        method: "POST",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({"data": data})
+    })
+    .then(response => response.json())
+    .then(data_temps => {
+        data_temps = data_temps["temps"]
+        const div_temps = document.getElementById("b2");
+        div_temps.innerHTML = "";
 
-    d3.select("#myPlot").select("g").remove()
+        const temps_tot_p = document.createElement("p");
+        temps_tot_p.textContent = "Temps total avec joueur: " + data_temps["temps_co_tot"]
+        div_temps.appendChild(temps_tot_p)
+        
+        for (const [temps, player] of data_temps["temps_co"]){
+            var new_p = document.createElement("p");
+            var new_a = document.createElement("a");
+            new_a.href = "/inv?player="+player+"";
+            new_a.text = player;
+            new_a.classList = "btn item";
+            new_p.appendChild(new_a);
+            new_p.insertAdjacentText('beforeend', " : "+temps);
+            div_temps.appendChild(new_p);
+        }
+    })
+}
 
-    const svg = d3.select("#myPlot")
-    const data = structuredClone(datas)
-    console.log(data["points"])
-    const coef = intervalle[1] - intervalle[0]
+function aff_graph(data, intervalle, coef, svg, xSize, ySize, margin){
+    
     const pas = coef/24;
     const count_pas = 23
     const fisrt_pas = intervalle[0]+ pas
-    const data_p = find_points(intervalle, data["points"]);
-
-     // temps des joueurs
-     const div_temps = document.getElementById("b2");
-     div_temps.innerHTML = "";
-     const temps_tot_p = document.createElement("p");
-     temps_tot_p.textContent = "Temps total avec joueur: "+data["temps_co_tot"]
-     div_temps.appendChild(temps_tot_p)
-     for (const [temps, player] of data["temps_co"]){
-         var new_p = document.createElement("p");
-         var new_a = document.createElement("a");
-         new_a.href = "/inv?player="+player+"";
-         new_a.text = player;
-         new_a.classList = "btn item";
-         new_p.appendChild(new_a);
-         new_p.insertAdjacentText('beforeend', " : "+temps);
-         div_temps.appendChild(new_p);
-         }
-
-    // Set Dimensions
-    const margin = 40;
-    const xSize = document.getElementById("b1").offsetWidth - 2 * margin;
-    const ySize = document.getElementById("b1").offsetHeight - 4 * margin;
-
 
     // set étiquette axe x
     const x_pos_list = []
     var x_label_list = []
-    console.log("pas", count_pas, pas, coef)
     x_pos_list.push(0)
     x_label_list.push(new Date(intervalle[0]*1000-3600000).toLocaleTimeString())
     for (let i=1; i<=count_pas; i++){
@@ -74,14 +74,14 @@ function set_graph(datas, intervalle = [0, 86400]){
     x_label_list.push(new Date(intervalle[1]*1000-3600000).toLocaleTimeString())
 
     // Ajoute point pour graphique "carré"
-    const lenght_data = data_p.length
-    for (var k in data_p){
+    const lenght_data = data.length
+    for (var k in data){
         if (k < lenght_data-1){
-            data_p.splice(k*2+1, 0, {
-                "aff_time": data_p[k*2+1]["aff_time"],
-                "online": data_p[k*2]["online"], 
-                "players": data_p[k*2]["players"], 
-                "time": data_p[k*2+1]["time"]})
+            data.splice(k*2+1, 0, {
+                "aff_time": data[k*2+1]["aff_time"],
+                "online": data[k*2]["online"], 
+                "players": data[k*2]["players"], 
+                "time": data[k*2+1]["time"]})
         }
     }
 
@@ -89,7 +89,7 @@ function set_graph(datas, intervalle = [0, 86400]){
     const g = svg
     .append("g")
     .attr("transform","translate(" + margin + "," + margin + ")")
-
+    .attr("id", "my_g")
 
     // add Axes
     const Axe_x = d3.scaleLinear().range([0, xSize]);
@@ -112,9 +112,9 @@ function set_graph(datas, intervalle = [0, 86400]){
     // creation des points
     g.append('g')
     .selectAll("circle")
-    .data(data_p).enter()
+    .data(data).enter()
     .append("circle")
-    .attr("cx", function (d) { return (d["time"]-data_p[0]["time"])*xSize/coef } )
+    .attr("cx", function (d) { return (d["time"]-data[0]["time"])*xSize/coef } )
     .attr("cy", function (d) { return ySize-d["players"].length*ySize/10 } )
     .attr("r", 2)
     .style("fill", function (d) {
@@ -125,12 +125,12 @@ function set_graph(datas, intervalle = [0, 86400]){
     // creation des lignes
     g.append("g")
     .selectAll("line")
-    .data(data_p.slice(0, -1)).enter()
+    .data(data.slice(0, -1)).enter()
     .append("line")
-    .attr("x1", function (d, i) { return (d["time"]-data_p[0]["time"])*xSize/coef })
+    .attr("x1", function (d, i) { return (d["time"]-data[0]["time"])*xSize/coef })
     .attr("y1", function (d, i) { return ySize-d["players"].length*ySize/10 })
-    .attr("x2", function (d, i) { return (data_p[i+1]["time"]-data_p[0]["time"])*xSize/coef })
-    .attr("y2", function (d, i) { return ySize-data_p[i+1]["players"].length*ySize/10 })
+    .attr("x2", function (d, i) { return (data[i+1]["time"]-data[0]["time"])*xSize/coef })
+    .attr("y2", function (d, i) { return ySize-data[i+1]["players"].length*ySize/10 })
     .style("stroke-width", 1)
     .style("stroke", function (d) {
         if (d["online"] == 1){return "white" }
@@ -149,58 +149,103 @@ function set_graph(datas, intervalle = [0, 86400]){
         .style("fill", "#00000000")
         .style("height", ySize)
         .style("width", xSize)
-        .attr("id", "test");
+        .attr("id", "capteur");
+}
 
+function set_event(data, coef, xSize, intervalle){
     // detecter la souris
-    const mydiv = document.getElementById("test");
+    const mydiv = document.getElementById("capteur");
+    const mysvg = document.getElementById("myPlot");
     const slc = document.getElementById("slc");
     const rect = mydiv.getBoundingClientRect();
     var x = null;
+
+    function calc_pos(pos, xSize){
+        return (pos >= 0 ? (pos <= xSize ? pos : xSize) : 0)
+    }
 
     mydiv.addEventListener("mouseenter", function(){
         slc.style.visibility = "";
     })
 
-    mydiv.addEventListener("mouseleave", function(){
+    mysvg.addEventListener("mouseleave", function(){
         slc.style.visibility = "hidden";
         slc.style.width = "2px";
         x = null;
     })
 
-    mydiv.addEventListener("mousedown", function(event){
+    mysvg.addEventListener("mousedown", function(event){
         if (event.button==0){
             x = event.clientX - rect.left;
         }
     })
-    
-    mydiv.addEventListener("mouseup", function(event){
-        if (x && Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0] > Math.round((x)/xSize*coef)+intervalle[0]){
-            set_graph(data, [Math.round((x)/xSize*coef)+intervalle[0], Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0]])
+
+    mysvg.addEventListener("mouseup", function(event){
+        var pos_1 = Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0]
+        var pos_2 = Math.round((x)/xSize*coef)+intervalle[0]
+        var pos_min = Math.min(pos_1, pos_2)
+        var pos_max = Math.max(pos_1, pos_2)
+        
+        if (pos_min+24 > pos_max && pos_max > pos_min){
+            pos_max = pos_min + 24
+        }
+        if (x && pos_min != pos_max){
+            set_graph(data, [pos_min, pos_max])
         }
         
         x = null;
         slc.style.width = "2px";
     })
     
-    mydiv.addEventListener("contextmenu", function(e){
+    mysvg.addEventListener("contextmenu", function(e){
         e.preventDefault();
     })
     
-    mydiv.addEventListener("mousemove", function(event) {
+    mysvg.addEventListener("mousemove", function(event) {
         if (event.buttons != 1){
             x = null;
             slc.style.width = "2px";
         }
+        const pos = (event.clientX - rect.left);
 
-        if (!x){;
-            slc.setAttribute("x", (event.clientX - rect.left))
-        } else if((event.clientX - rect.left) - x > 1) {
-            slc.style.width = (event.clientX - rect.left) - x;
+        if (!x){
+            slc.setAttribute("x", calc_pos(pos, xSize))
+        } else if(pos - x > 1) {
+            slc.style.width = calc_pos(pos, xSize) - x;
+        }else if(pos - x < 1){
+            slc.style.width = x - calc_pos(pos, xSize);
+            slc.setAttribute("x", calc_pos(pos, xSize));
+            
         } else {
             slc.style.width = "2px";
         }
-        // console.log(new Date((Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0])*1000 - 3600000).toLocaleTimeString());
     });
+
+    // set action button
+    window.onresize = function(){
+        set_graph(data, intervalle);
+    };
+}
+
+function set_graph(datas, intervalle=[0, 86400]){
+    const data = find_points(intervalle, structuredClone(datas["points"]))
+    players_time(data).then(() => {
+        
+        // Set Dimensions
+        document.getElementById("myPlot").remove()
+        const svg = d3.select("#b1")
+        .append("svg")
+        .attr("id", "myPlot")
+        const margin = 40;
+        const xSize = document.getElementById("b1").offsetWidth - 2 * margin;
+        const ySize = document.getElementById("b1").offsetHeight - 2 * margin - 15;
+        const coef = intervalle[1] - intervalle[0]
+        
+        //appel function
+        aff_graph(data, intervalle, coef, svg, xSize, ySize, margin)
+        set_event(datas, coef, xSize, intervalle)
+})
+    
 }
 
 function send_data(date){
@@ -214,10 +259,9 @@ function send_data(date){
     .then(response => response.json())
     .then(data => {
         set_graph(data["data"])
-
-        window.onresize = function(){
+        document.getElementById("dezoom_graph").addEventListener("click", function(){
             set_graph(data["data"]);
-        };
+        })
     })
 }
 

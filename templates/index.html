@@ -2,7 +2,7 @@
 <html lang="fr">
     <head>
         <meta charset="utf-8">
-        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" type="text/css">
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
         <script src="https://d3js.org/d3.v4.js"></script>
         <title>Stat</title>
     </head>
@@ -10,32 +10,24 @@
     <body>
         <div id="all">
             <div id="main">
+                <h2>{{stat}}</h2>
                 <div id="b1">
-                    <h2>{{stat}}</h2>
                     <svg id="myPlot"></svg>
-                    <div id="info-point">
-
-                    </div>
                 </div>
                 <script>
-                    const temp = {{ temp|tojson }};
-                    const usernames = {{ usernames|tojson }};
-                    const temps_user = {{ temps_user|tojson }};
-                    const stat = {{ stat|tojson }};
-                    const temps_total = {{ temps_total|tojson }};
                     const date = {{ date|tojson }};
                 </script>
 
                 <div>
                     <button onclick="navigate(-1)" class="btn">Jour précédent</button>
                     <button onclick="navigate(1)" class="btn">Jour suivant</button>
+                    <button class="btn" id="dezoom_graph">Dézommer</button>
                     <form>
                         <p>
                             <input type="date" name="date" id="nom" class="btn">
                             <input type="submit" value="envoie" class="btn">
                         </p>
                     </form>
-                    <button onclick='send_data({{ date|tojson }})' class="btn">Test</button>
                 </div>
             </div>
             <div id="b2"></div>
@@ -58,8 +50,6 @@
                 window.location.href = "{{ url_for('test') }}?date=" + isoDate;
             }
         </script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     </body>
 </html>
