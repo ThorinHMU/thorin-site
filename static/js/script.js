@@ -24,7 +24,26 @@ function find_points(intervalle, data){
     return new_data
 }
 
-function players_time(data){
+function set_info(data, x){
+    const div = d3.select("#info-list");
+    const p  = div.select("p");
+
+    for (var point in data){
+        var time1 = data[point]["time"] - data[0]["time"]
+        var time2 = data[(point > 0 ? point-1 : 0)]["time"] - data[0]["time"]
+        console.log(time1, x)
+        if (time1>= x){
+            const heure1 = new Date((time2-3600)*1000).toLocaleTimeString()
+            const heure2 = new Date((time1-3600)*1000).toLocaleTimeString()
+            nbr_player = data[point-1]["players"]
+            p.text("de "+ heure1 + " a " + heure2 + " pendant " + (new Date((time1-time2-3600)*1000).toLocaleTimeString()) + " avec " + nbr_player.length + " joueur(s): " + nbr_player.join(" / "))
+            console.log(1)
+            break
+        }
+    }
+}
+
+async function players_time(data){
     return fetch('/temps', {
         method: "POST",
         headers: {
@@ -57,7 +76,7 @@ function players_time(data){
 
 function aff_graph(data, intervalle, coef, svg, xSize, ySize, margin){
     
-    const pas = coef/24;
+    const pas = Math.round(coef/24);
     const count_pas = 23
     const fisrt_pas = intervalle[0]+ pas
 
@@ -164,7 +183,7 @@ function set_event(data, coef, xSize, intervalle){
         return (pos >= 0 ? (pos <= xSize ? pos : xSize) : 0)
     }
 
-    mydiv.addEventListener("mouseenter", function(){
+    mysvg.addEventListener("mouseenter", function(){
         slc.style.visibility = "";
     })
 
@@ -176,12 +195,12 @@ function set_event(data, coef, xSize, intervalle){
 
     mysvg.addEventListener("mousedown", function(event){
         if (event.button==0){
-            x = event.clientX - rect.left;
+            x = calc_pos(event.clientX - rect.left, xSize);
         }
     })
 
     mysvg.addEventListener("mouseup", function(event){
-        var pos_1 = Math.round((event.clientX - rect.left)/xSize*coef)+intervalle[0]
+        var pos_1 = Math.round(calc_pos(event.clientX - rect.left, xSize)/xSize*coef)+intervalle[0]
         var pos_2 = Math.round((x)/xSize*coef)+intervalle[0]
         var pos_min = Math.min(pos_1, pos_2)
         var pos_max = Math.max(pos_1, pos_2)
@@ -189,7 +208,7 @@ function set_event(data, coef, xSize, intervalle){
         if (pos_min+24 > pos_max && pos_max > pos_min){
             pos_max = pos_min + 24
         }
-        if (x && pos_min != pos_max){
+        if (x != null && pos_min != pos_max){
             set_graph(data, [pos_min, pos_max])
         }
         
@@ -202,20 +221,21 @@ function set_event(data, coef, xSize, intervalle){
     })
     
     mysvg.addEventListener("mousemove", function(event) {
+
         if (event.buttons != 1){
             x = null;
             slc.style.width = "2px";
         }
         const pos = (event.clientX - rect.left);
-
-        if (!x){
+        set_info(data["points"], Math.round(calc_pos(event.clientX - rect.left, xSize)/xSize*coef)+intervalle[0]);
+        
+        if (x == null){
             slc.setAttribute("x", calc_pos(pos, xSize))
-        } else if(pos - x > 1) {
+        } else if(calc_pos(pos, xSize) - x > 1) {
             slc.style.width = calc_pos(pos, xSize) - x;
-        }else if(pos - x < 1){
+        }else if(calc_pos(pos, xSize) - x < 1){
             slc.style.width = x - calc_pos(pos, xSize);
             slc.setAttribute("x", calc_pos(pos, xSize));
-            
         } else {
             slc.style.width = "2px";
         }
@@ -227,18 +247,24 @@ function set_event(data, coef, xSize, intervalle){
     };
 }
 
-function set_graph(datas, intervalle=[0, 86400]){
+function set_graph(datas, intervalle=[0, 86399]){
     const data = find_points(intervalle, structuredClone(datas["points"]))
     players_time(data).then(() => {
         
         // Set Dimensions
         document.getElementById("myPlot").remove()
-        const svg = d3.select("#b1")
-        .append("svg")
-        .attr("id", "myPlot")
+        document.getElementById("info-list").remove()
+        const svg = d3.select("#b1").append("svg").attr("id", "myPlot")
+        const info = d3.select("#b1")
+                    .append("div")
+                    .attr("id", "info-list")
+                    .style("height", "50px")
+                    .style("margin-left", "40px");
+        info.append("p")
+
         const margin = 40;
         const xSize = document.getElementById("b1").offsetWidth - 2 * margin;
-        const ySize = document.getElementById("b1").offsetHeight - 2 * margin - 15;
+        const ySize = Number(getComputedStyle(document.getElementById("myPlot")).height.slice(0, 3)) - 2 * margin - 15;
         const coef = intervalle[1] - intervalle[0]
         
         //appel function

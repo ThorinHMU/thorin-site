@@ -9,11 +9,9 @@ from nbt import nbt
 import gzip
 from io import BytesIO
 from enchant import enchant
-
 app = Flask(__name__)
 application = app
 app.secret_key = "05f13cee9a270bbb6467039508232f38531b3ec6db04b16c6c80ac5b225cec4b"
-
 
 def sql():
     cursor = None
@@ -236,7 +234,7 @@ def count_time_player_co(player_name: str, data: list) -> int:
     last_time = 0
     for i in data:
         tot_seconde = calc_secondes(i.get("time")) \
-            if datetime.datetime.fromtimestamp(i.get('time')-1).date() == date \
+            if datetime.datetime.fromtimestamp(i.get('time')).date() == date \
             else 0
         if player_name in i.get("players") or (player_name == "*" and i.get("players")):
             if not last_time:
