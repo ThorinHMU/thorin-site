@@ -11,21 +11,31 @@ body{
 #all {
     display: flex;
     width: 100%;
+    min-width: max-content;
 }
 
 #main {
-width: 75%;
+    width: 75%;
 }
 
 #b1 {
     float: left;
     width: 100%;
+    min-width: 500px;
 }
 
 #b1 svg{
+    border: solid black 5px ;
+    box-sizing: border-box;
+    border-radius: 20px;
+    background-color: rgb(30 0 204);
     user-select: none;
     width: 100%;
     height: 500px;
+}
+
+#b1 div, #b1 div p{
+    width: 100%;
 }
 
 #b2{

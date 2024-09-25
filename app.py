@@ -258,8 +258,10 @@ def count_time_players_co():
     liste_players = set()
     for i in data:
         liste_players = liste_players | set(i.get("players"))
-    times = [(str(datetime.datetime.fromtimestamp(count_time_player_co(player, data), datetime.timezone.utc).time()),
-              player) for player in liste_players]
+    times = sorted(
+        [(str(datetime.datetime.fromtimestamp(count_time_player_co(player, data),
+                                              datetime.timezone.utc).time()), player) for player in liste_players],
+        key=lambda x: count_time_player_co(x[1], data)*-1)
     time_tot = str(datetime.datetime.fromtimestamp(count_time_player_co("*", data), datetime.timezone.utc).time())
 
     return jsonify({"temps": {"temps_co": times, "temps_co_tot": time_tot}})
@@ -283,7 +285,7 @@ def data_co():
     data_send = {}
 
     for k, i in enumerate(data_sql):
-        sql_time = datetime.datetime.fromtimestamp(i.   get("time"))
+        sql_time = datetime.datetime.fromtimestamp(i.get("time"))
         if sql_time.date() == date:
             if not data_sql_fin:
                 if k != 0:
@@ -295,15 +297,21 @@ def data_co():
                     pass
             data_sql_fin.append(trans_data(i))
 
+    if not data_sql_fin:
+        sql_time = datetime.datetime.fromtimestamp(data_sql[-1].get("time"))
+        time_0 = sql_time.replace(year=date.year, month=date.month, day=date.day, hour=0, minute=0, second=0)
+        data_0 = trans_data(data_sql[-1])
+        data_0.update({"time": time_0.timestamp().__int__(), "aff_time": time_0.time().__str__()})
+        data_sql_fin.append(data_0)
+
     if data_sql_fin and date == datetime.date.today():
         last = data_sql_fin[-1].copy()
         last["time"] = datetime.datetime.now().timestamp().__int__()
-        last["aff_time"] = datetime.datetime.now().time().__str__()
+        last["aff_time"] = datetime.datetime.now().time().strftime("%H:%M:%S")
         data_sql_fin.append(last)
 
     data_send.update({"points": data_sql_fin})
     for i in data_sql_fin:
-        # print(i, datetime.datetime.fromtimestamp(i.get("time")).time())
-        pass
+        print(i, datetime.datetime.fromtimestamp(i.get("time")).time())
 
     return jsonify({'data': data_send})

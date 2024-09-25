@@ -18,8 +18,10 @@ function find_points(intervalle, data){
     new_data.at(0)["time"] = l_data.at(0)["time"] + intervalle[0];
     new_data.at(0)["aff_time"] = new Date(new_data.at(0)["time"]*1000).toLocaleTimeString();
     new_data.push(structuredClone(new_data.at(-1)))
-    new_data.at(-1)["time"] = l_data.at(0)["time"] + intervalle[1];
-    new_data.at(-1)["aff_time"] = new Date(new_data.at(-1)["time"]*1000).toLocaleTimeString();
+    if (intervalle[1] < structuredClone(l_data).at(-1)["time"] - l_data.at(0)["time"] || new Date(l_data.at(-1)["time"]*1000).toLocaleDateString() != new Date().toLocaleDateString()){
+        new_data.at(-1)["time"] = l_data.at(0)["time"] + intervalle[1];
+        new_data.at(-1)["aff_time"] = new Date(new_data.at(-1)["time"]*1000).toLocaleTimeString();
+    }
     }
     return new_data
 }
@@ -31,16 +33,16 @@ function set_info(data, x){
     for (var point in data){
         var time1 = data[point]["time"] - data[0]["time"]
         var time2 = data[(point > 0 ? point-1 : 0)]["time"] - data[0]["time"]
-        console.log(time1, x)
         if (time1>= x){
             const heure1 = new Date((time2-3600)*1000).toLocaleTimeString()
             const heure2 = new Date((time1-3600)*1000).toLocaleTimeString()
-            nbr_player = data[point-1]["players"]
+            nbr_player = data[(point > 0 ? point-1 : 0)]["players"]
             p.text("de "+ heure1 + " a " + heure2 + " pendant " + (new Date((time1-time2-3600)*1000).toLocaleTimeString()) + " avec " + nbr_player.length + " joueur(s): " + nbr_player.join(" / "))
-            console.log(1)
-            break
+            return
         }
     }
+
+    p.text("")
 }
 
 async function players_time(data){
@@ -191,6 +193,8 @@ function set_event(data, coef, xSize, intervalle){
         slc.style.visibility = "hidden";
         slc.style.width = "2px";
         x = null;
+
+        d3.select("#info-list").select("p").text("")
     })
 
     mysvg.addEventListener("mousedown", function(event){
@@ -227,7 +231,7 @@ function set_event(data, coef, xSize, intervalle){
             slc.style.width = "2px";
         }
         const pos = (event.clientX - rect.left);
-        set_info(data["points"], Math.round(calc_pos(event.clientX - rect.left, xSize)/xSize*coef)+intervalle[0]);
+        set_info(find_points([0, 86399], data["points"]), Math.round(calc_pos(event.clientX - rect.left, xSize)/xSize*coef)+intervalle[0]);
         
         if (x == null){
             slc.setAttribute("x", calc_pos(pos, xSize))
@@ -262,10 +266,11 @@ function set_graph(datas, intervalle=[0, 86399]){
                     .style("margin-left", "40px");
         info.append("p")
 
-        const margin = 40;
+        const margin = 50;
         const xSize = document.getElementById("b1").offsetWidth - 2 * margin;
         const ySize = Number(getComputedStyle(document.getElementById("myPlot")).height.slice(0, 3)) - 2 * margin - 15;
         const coef = intervalle[1] - intervalle[0]
+        d3.select("#info-list").style("width", xSize + "px")
         
         //appel function
         aff_graph(data, intervalle, coef, svg, xSize, ySize, margin)

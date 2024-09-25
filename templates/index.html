@@ -5,6 +5,7 @@
         <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
         <script src="https://d3js.org/d3.v4.js"></script>
         <title>Stat</title>
+        <link rel="icon" href="{{ url_for('static', filename='img/assets/icon.png') }}">
     </head>
 
     <body>
@@ -16,7 +17,8 @@
                     <div id="info-list"></div>
                 </div>
                 <script>
-                    const date = {{ date|tojson }};
+                    var date = {{ date|tojson }};
+                    console.log("date", date)
                 </script>
 
                 <div>
@@ -37,7 +39,7 @@
 
         <script>
             function navigate(offset) {
-                var currentDate = new Date('{{ date }}');
+                var currentDate = new Date(date);
                 var nextDate = new Date(currentDate);
                 nextDate.setDate(currentDate.getDate() + offset);
 
@@ -46,9 +48,10 @@
                 var month = String(nextDate.getMonth() + 1).padStart(2, '0');
                 var day = String(nextDate.getDate()).padStart(2, '0');
                 var isoDate = year + '-' + month + '-' + day;
-
+                date = isoDate
+                send_data(date)
                 // Rediriger vers l'URL avec la nouvelle date
-                window.location.href = "{{ url_for('test') }}?date=" + isoDate;
+                // window.location.href = "{{ url_for('test') }}?date=" + isoDate;
             }
         </script>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
