@@ -1,3 +1,10 @@
+function clear_event_listener(id){
+    var element = document.getElementById(id)
+    let newElement = element.cloneNode(true);
+    element.parentNode.replaceChild(newElement,element);
+    element = newElement;
+}
+
 function find_points(intervalle, data){
     var inter_d = -1
     var inter_e = -1
@@ -18,6 +25,7 @@ function find_points(intervalle, data){
     new_data.at(0)["time"] = l_data.at(0)["time"] + intervalle[0];
     new_data.at(0)["aff_time"] = new Date(new_data.at(0)["time"]*1000).toLocaleTimeString();
     new_data.push(structuredClone(new_data.at(-1)))
+
     if (intervalle[1] < structuredClone(l_data).at(-1)["time"] - l_data.at(0)["time"] || new Date(l_data.at(-1)["time"]*1000).toLocaleDateString() != new Date().toLocaleDateString()){
         new_data.at(-1)["time"] = l_data.at(0)["time"] + intervalle[1];
         new_data.at(-1)["aff_time"] = new Date(new_data.at(-1)["time"]*1000).toLocaleTimeString();
@@ -231,7 +239,7 @@ function set_event(data, coef, xSize, intervalle){
             slc.style.width = "2px";
         }
         const pos = (event.clientX - rect.left);
-        set_info(find_points([0, 86399], data["points"]), Math.round(calc_pos(event.clientX - rect.left, xSize)/xSize*coef)+intervalle[0]);
+        set_info(find_points([0, 86399], data["points"]), Math.floor(calc_pos(event.clientX - rect.left, xSize)/xSize*coef)+1+intervalle[0]);
         
         if (x == null){
             slc.setAttribute("x", calc_pos(pos, xSize))
@@ -262,7 +270,6 @@ function set_graph(datas, intervalle=[0, 86399]){
         const info = d3.select("#b1")
                     .append("div")
                     .attr("id", "info-list")
-                    .style("height", "50px")
                     .style("margin-left", "40px");
         info.append("p")
 
@@ -279,7 +286,11 @@ function set_graph(datas, intervalle=[0, 86399]){
     
 }
 
-function send_data(date){
+function send_data(fdate){
+    if (new Date(fdate) > new Date()){
+        date = actual_day
+    }
+    document.getElementById("titre").textContent = date;
     fetch('/data', {
         method: "POST",
         headers: {
@@ -290,11 +301,14 @@ function send_data(date){
     .then(response => response.json())
     .then(data => {
         set_graph(data["data"])
-        document.getElementById("dezoom_graph").addEventListener("click", function(){
+        
+        clear_event_listener("dezoom_graph")
+        document.getElementById("dezoom_graph").addEventListener("click", function test(){
             set_graph(data["data"]);
         })
     })
 }
 
+var actual_day = new Date().toLocaleDateString().split("/")[2]+"-"+new Date().toLocaleDateString().split("/")[1]+"-"+new Date().toLocaleDateString().split("/")[0]
+document.getElementById("nom").setAttribute("max", actual_day)
 send_data(date)
-

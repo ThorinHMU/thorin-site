@@ -9,9 +9,15 @@
     </head>
 
     <body>
+        <div id="menu">
+            <a class="nav actif" href="#">Acceuil</a>
+            <a class="nav" href="#">Statistiques</a>
+            <a class="nav" href="#">Joueurs</a>
+            <span id="indic-nav"></span>
+        </div>
         <div id="all">
             <div id="main">
-                <h2>{{stat}}</h2>
+                <h2 id="titre">{{stat}}</h2>
                 <div id="b1">
                     <svg id="myPlot"></svg>
                     <div id="info-list"></div>
@@ -28,32 +34,37 @@
                     <form>
                         <p>
                             <input type="date" name="date" id="nom" class="btn">
-                            <input type="submit" value="envoie" class="btn">
+                            <input type="button" value="envoie" class="btn">
                         </p>
                     </form>
                 </div>
             </div>
             <div id="b2"></div>
         </div>
-
-
         <script>
+            let timeoutId = null;
+
             function navigate(offset) {
+                
                 var currentDate = new Date(date);
                 var nextDate = new Date(currentDate);
                 nextDate.setDate(currentDate.getDate() + offset);
-
-                // Construire manuellement la chaîne de date au format "YYYY-MM-DD"
                 var year = nextDate.getFullYear();
                 var month = String(nextDate.getMonth() + 1).padStart(2, '0');
                 var day = String(nextDate.getDate()).padStart(2, '0');
                 var isoDate = year + '-' + month + '-' + day;
-                date = isoDate
-                send_data(date)
-                // Rediriger vers l'URL avec la nouvelle date
-                // window.location.href = "{{ url_for('test') }}?date=" + isoDate;
+                
+                date = isoDate;
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                document.getElementById("titre").textContent = date;
+                timeoutId = setTimeout(function() {
+                    send_data(date);
+                }, 500)
             }
         </script>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
     </body>
 </html>
