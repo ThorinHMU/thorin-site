@@ -12,6 +12,8 @@ from enchant import enchant
 app = Flask(__name__)
 application = app
 app.secret_key = "05f13cee9a270bbb6467039508232f38531b3ec6db04b16c6c80ac5b225cec4b"
+app.add_url_rule('/favicon.ico',
+                 redirect_to=url_for('static', filename='img/assets/icon.png'))
 
 def sql():
     cursor = None
