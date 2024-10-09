@@ -74,7 +74,7 @@ async function players_time(data){
         for (const [temps, player] of data_temps["temps_co"]){
             var new_p = document.createElement("p");
             var new_a = document.createElement("a");
-            new_a.href = "/inv?player="+player+"";
+            new_a.href = "/inv/"+player;
             new_a.text = player;
             new_a.classList = "btn item";
             new_p.appendChild(new_a);
@@ -271,13 +271,15 @@ function set_graph(datas, intervalle=[0, 86399]){
                     .append("div")
                     .attr("id", "info-list")
                     .style("margin-left", "40px");
-        info.append("p")
+        var p = document.createElement("p");
+        p.style.margin = "5px 0px";
+        document.getElementById("info-list").appendChild(p)
 
         const margin = 50;
         const xSize = document.getElementById("b1").offsetWidth - 2 * margin;
         const ySize = Number(getComputedStyle(document.getElementById("myPlot")).height.slice(0, 3)) - 2 * margin - 15;
         const coef = intervalle[1] - intervalle[0]
-        d3.select("#info-list").style("width", xSize + "px")
+        d3.select("#info-list").style("width", xSize + "px").style("height", "26px")
         
         //appel function
         aff_graph(data, intervalle, coef, svg, xSize, ySize, margin)
@@ -306,7 +308,6 @@ function send_data(fdate){
         document.getElementById("dezoom_graph").addEventListener("click", function test(){
             set_graph(data["data"]);
         })
-        window.scrollTo({top: 0})
     })
 }
 

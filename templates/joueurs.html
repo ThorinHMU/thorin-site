@@ -4,14 +4,17 @@
         <meta charset="utf-8">
         <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
         <link rel="icon" href="{{ url_for('static', filename='img/assets/icon.png') }}">
-        <title>Acceuil</title>
+        <title>Joueurs</title>
         <meta name="description" content="un site de gestion d'un serveur minecraft">
+
     </head>
     <body>
         {%include 'nav.html'%}
-        
-        <h1>Accueil</h1>
-
+        <div>
+            <h1>Listes Joueurs:</h1>
+            <div id="list-joueur"></div>
+        </div>
         <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/joueurs.js') }}"></script>
     </body>
 </html>

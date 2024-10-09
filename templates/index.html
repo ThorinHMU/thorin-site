@@ -5,6 +5,7 @@
         <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
         <script src="https://d3js.org/d3.v4.js"></script>
         <title>Stat</title>
+        <meta name="description" content="un site de gestion d'un serveur minecraft">
         <link rel="icon" href="{{ url_for('static', filename='img/assets/icon.png') }}">
     </head>
 
@@ -27,9 +28,9 @@
                     <button onclick="navigate(1)" class="btn">Jour suivant</button>
                     <button class="btn" id="dezoom_graph">Dézommer</button>
                     <form>
-                        <p>
+                        <p style="margin: 10px 0px">
                             <input type="date" name="date" id="nom" class="btn">
-                            <input type="button" value="envoie" class="btn">
+                            <input type="button" value="envoie" class="btn" onclick="send()">
                         </p>
                     </form>
                 </div>
@@ -38,6 +39,11 @@
         </div>
         <script>
             let timeoutId = null;
+            function send(){
+                date = document.getElementById("nom").value
+                send_data(document.getElementById("nom").value);
+                console.log(document.getElementById("nom").value);
+            }
 
             function navigate(offset) {
                 
@@ -61,6 +67,5 @@
         </script>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
         <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
-        <script>nav_bar(document.getElementsByClassName("nav")[2])</script>
     </body>
 </html>

@@ -12,8 +12,7 @@ from enchant import enchant
 app = Flask(__name__)
 application = app
 app.secret_key = "05f13cee9a270bbb6467039508232f38531b3ec6db04b16c6c80ac5b225cec4b"
-app.add_url_rule('/favicon.ico',
-                 redirect_to=url_for('static', filename='img/assets/icon.png'))
+
 
 def sql():
     cursor = None
@@ -76,7 +75,7 @@ def retour():
 
 @app.route("/")
 def princ():
-    return render_template("accueil.html")
+    return render_template("accueil.html", active_page='accueil')
 
 
 @app.route('/stat')
@@ -93,13 +92,44 @@ def test():
     else:
         date_arg = jour_actuel[0].copy()
 
-    return render_template('index.html', date=f"{date_arg[0]}-{date_arg[1]}-{date_arg[2]}")
+    return render_template('index.html', date=f"{date_arg[0]}-{date_arg[1]}-{date_arg[2]}",
+                           active_page='stat')
 
 
-@app.route('/inv')
-def inv():
+@app.route("/inv")
+def joueurs():
+    url = f"https://game.hosterfy.com/api/client/servers/6c43749e/files/contents?file=usercache.json"
+    headers = {
+        "Authorization": f"Bearer {apkey}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    response = requests.request(url=url, method="GET", headers=headers)
+    players = [i["name"] for i in response.json()]
+
+    return render_template("joueurs.html", players=players, active_page='joueurs')
+
+
+@app.route("/get_players", methods=["POST"])
+def get_players():
+    url = f"https://game.hosterfy.com/api/client/servers/6c43749e/files/contents?file=usercache.json"
+    headers = {
+        "Authorization": f"Bearer {apkey}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    response = requests.request(url=url, method="GET", headers=headers)
+    players = list({(i["name"], f"https://mineskin.eu/avatar/{i["name"]}/16.png"
+                    if i["name"].replace("_", "").isalnum()
+                    else f"https://mineskin.eu/avatar/_/16.png") for i in response.json()})
+    players = list(sorted(players, key=lambda x: [i["name"] for i in response.json()].index(x[0])))
+    return jsonify({"players": players})
+
+
+@app.route('/inv/<player>')
+def inv(player):
     argument = request.args
-    player_select = argument.get("player")
+    player_select = player
     date = argument.get("date")
     if not date:
         date = datetime.date.today()
@@ -133,7 +163,7 @@ def inv():
                            str(i.get("count")), enchantes is not None])
 
     return render_template("Inventaire.html", skin_url=skin_url, inv=json.dumps(inventaire),
-                           nom=nom, date=date)
+                           nom=nom, date=date, active_page='joueurs')
 
 
 def calc_secondes(timestamp):
