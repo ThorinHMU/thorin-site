@@ -1,12 +1,18 @@
 const bar = document.getElementById("indic-nav")
-bar.style.left = document.getElementsByClassName("actif")[0].offsetLeft-7.5 + "px"
-bar.style.width = document.getElementsByClassName("actif")[0].offsetWidth+15 + "px"
+
+function delay(event, time){
+    event.preventDefault();
+    setTimeout(() => {
+        window.location.href = event.target.attributes.href.nodeValue;
+    }, time);
+}
 
 function nav_bar(e){
     items.forEach(el => {
         el.classList.remove("actif");
         el.removeAttribute("style");
     })
+    
     bar.style.width = e.offsetWidth + "px";
     bar.style.left = e.offsetLeft + "px";
     e.classList.add("actif")
@@ -23,3 +29,4 @@ items.forEach(element=> {
 window.addEventListener("resize", function(){   
     nav_bar(document.getElementsByClassName("actif")[0])
 })
+

@@ -98,8 +98,6 @@ body{
     border-bottom: 3px solid black;
     position: absolute;
     translate: 0px 42px;
-    width: 0;
-    left: 0;
     transition: 500ms;
 }   
 

@@ -306,9 +306,11 @@ function send_data(fdate){
         document.getElementById("dezoom_graph").addEventListener("click", function test(){
             set_graph(data["data"]);
         })
+        window.scrollTo({top: 0})
     })
 }
 
 var actual_day = new Date().toLocaleDateString().split("/")[2]+"-"+new Date().toLocaleDateString().split("/")[1]+"-"+new Date().toLocaleDateString().split("/")[0]
 document.getElementById("nom").setAttribute("max", actual_day)
 send_data(date)
+

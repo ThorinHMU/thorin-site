@@ -9,12 +9,7 @@
     </head>
 
     <body>
-        <div id="menu">
-            <a class="nav actif" href="#">Acceuil</a>
-            <a class="nav" href="#">Statistiques</a>
-            <a class="nav" href="#">Joueurs</a>
-            <span id="indic-nav"></span>
-        </div>
+        {% include 'nav.html'%}
         <div id="all">
             <div id="main">
                 <h2 id="titre">{{stat}}</h2>
@@ -66,5 +61,6 @@
         </script>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
         <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+        <script>nav_bar(document.getElementsByClassName("nav")[1])</script>
     </body>
 </html>

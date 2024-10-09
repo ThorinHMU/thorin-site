@@ -72,7 +72,12 @@ def retour():
     return 'La fonction a été exécutée avec succès !'
 
 
-@app.route('/')
+@app.route("/")
+def princ():
+    return render_template("accueil.html")
+
+
+@app.route('/stat')
 def test():
     arguments = request.args
 
