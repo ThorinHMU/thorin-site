@@ -12,7 +12,7 @@
         {%include 'nav.html'%}
         <h1>Inventaire</h1>
         <p>{{nom}}</p>
-        <div id="main">
+        <div id="main-inv">
             <div id="inv">
                 <img style="width: 100%; image-rendering: pixelated;" src="{{url_for('static', filename='img/inventaire.png')}}">
                 <div class="skin" id="skin"></div>
@@ -74,6 +74,7 @@
 
                 </script>
             </div>
+            <div id="player-stat"></div>
         </div>
         <script>
 
@@ -103,5 +104,6 @@
             };
         </script>
         <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/joueur.js') }}"></script>
     </body>
 </html>

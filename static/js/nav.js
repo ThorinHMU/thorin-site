@@ -30,5 +30,5 @@ if (actif){
 }
 
 window.addEventListener("resize", function(){   
-    nav_bar(document.getElementsByClassName("actif")[0])
+    nav_bar(document.getElementsByClassName("actif")[0].target)
 })

@@ -126,6 +126,27 @@ def get_players():
     return jsonify({"players": players})
 
 
+@app.route("/get_stat_player", methods=["POST"])
+def get_stat_player():
+    print("okk")
+    argument = request.json
+    print(argument)
+    player = argument.get("player")
+    print(player)
+    url = f"https://game.hosterfy.com/api/client/servers/6c43749e/files/contents?file=usercache.json"
+    headers = {
+        "Authorization": f"Bearer {apkey}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    response = requests.request(url=url, method="GET", headers=headers)
+    uuid = [i["uuid"] for i in response.json() if i["name"] == player][0]
+    url = f"https://game.hosterfy.com/api/client/servers/6c43749e/files/contents?file=world/stats/{uuid}.json"
+    response = requests.get(url, headers=headers)
+    print(response.json()["stats"]["minecraft:custom"])
+    return jsonify({"stats": response.json()["stats"]["minecraft:custom"]})
+
+
 @app.route('/inv/<player>')
 def inv(player):
     argument = request.args

@@ -1,5 +1,6 @@
-#main{
+#main-inv{
     display: flex;
+    width: 100%;
 }
 
 #inv{
@@ -52,4 +53,7 @@ p.count{
     text-align: right;
 }
 
-
+div#player-stat{
+    margin: 0px 50px;
+    columns: 3;
+}
