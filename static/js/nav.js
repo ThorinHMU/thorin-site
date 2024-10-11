@@ -16,6 +16,7 @@ function nav_bar(e){
     
     bar.style.width = e.offsetWidth + "px";
     bar.style.left = e.offsetLeft + "px";
+    e.classList.add("actif");
 }
 
 items = document.querySelectorAll('.nav')
@@ -30,5 +31,5 @@ if (actif){
 }
 
 window.addEventListener("resize", function(){   
-    nav_bar(document.getElementsByClassName("actif")[0].target)
+    nav_bar(document.getElementsByClassName("actif")[0])
 })

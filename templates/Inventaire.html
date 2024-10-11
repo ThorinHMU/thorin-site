@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
+        {%include 'headers.html'%}
         <title>Inventaire</title>
-        <meta name="description" content="un site de gestion d'un serveur minecraft">
-        <link href="{{ url_for('static', filename='css/inv.css') }}" rel="stylesheet" type="text/css">
         <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
-        <link rel="icon" href="{{ url_for('static', filename='img/assets/icon.png') }}">
     </head>
     <body>
         {%include 'nav.html'%}
@@ -103,7 +100,8 @@
 
             };
         </script>
-        <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/joueur.js') }}"></script>
+
     </body>
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/joueur.js') }}"></script>
 </html>

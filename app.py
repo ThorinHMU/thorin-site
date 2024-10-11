@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, request, session, url_for, send_file, redirect, jsonify
+from flask import Flask, render_template, request, session, url_for, send_file, redirect, jsonify, send_from_directory
 import mysql.connector
 import datetime
 from config import host, port, user, password, database, apkey
@@ -12,6 +12,13 @@ from enchant import enchant
 app = Flask(__name__)
 application = app
 app.secret_key = "05f13cee9a270bbb6467039508232f38531b3ec6db04b16c6c80ac5b225cec4b"
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        app.static_folder, 'img/assets/favicon.ico', mimetype='image/vnd.microsoft.icon'
+    )
 
 
 def sql():

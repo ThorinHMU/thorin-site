@@ -54,6 +54,19 @@ p.count{
 }
 
 div#player-stat{
-    margin: 0px 50px;
-    columns: 3;
+    background-color: var(--widget-blue);
+    border: solid 7px rgb(255 255 255);
+    border-radius: 23px;
+    padding: 10px;
+    margin-inline-start: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    overflow-y: scroll;
+    height: 566px;
+    box-sizing: border-box;
+}
+
+div#player-stat p{
+    margin: 6px 0px;
+    font-size: 20px;
 }
